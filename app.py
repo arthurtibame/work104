@@ -4,6 +4,7 @@ from flask_login import LoginManager, login_required, login_user, logout_user, c
 from models.UsersModel import User
 from models.UsersModel import db
 from models.ContryModel import Country
+from models.AreaModel import Area
 import re
 import pandas as pd
 
@@ -138,24 +139,24 @@ def tables():
 
 @app.route('/forms', methods=["GET", "POST"])
 def forms():
-    print("hi")
-    sheet_names = Country.sheet_names
-    country_areas = Country.area_names
-    print(country_areas)
-
+    countries = Country.query.all()
+    area_names = Area.query.distinct() 
+    
 
     if request.method == 'GET':        
-        return render_template('forms.html', user=current_user, sheet_names=sheet_names, country_areas = country_areas)
-    selected_sheet_names = request.form["keyword"]  
-    selected_country = request.form["country"]
-    selected_area = request.form["country_area"]
+        return render_template('forms.html', user=current_user)
+    
 
     if request.method =='POST':
-    
-        print(selected_sheet_names, selected_country, selected_area)     
-        return render_template('forms.html', user=current_user, sheet_names=sheet_names,country_areas = country_areas)
-    
-       
+        selected_sheet_names = request.form["keyword"]  
+        selected_country = request.form["country"]
+        selected_area = request.form["area_name"]
+        print(selected_sheet_names)
+        print(selected_country)
+        print(selected_area)     
+
+        return render_template('forms.html', user=current_user)
+ 
 
 
 @app.route('/bootstrap-elements')
@@ -233,4 +234,4 @@ def password_check(password):
 
 if __name__ == "__main__":
 	# change to app.run(host="0.0.0.0"), if you want other machines to be able to reach the webserver.
-	app.run(port=8000, debug=True) 
+	app.run(port=8080, debug=True) 
