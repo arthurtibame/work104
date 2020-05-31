@@ -41,9 +41,10 @@ def tackle_area(area="All", country="Taiwan"):
         area_code = df_choose.iloc[0,2]
         return area_code
     except:
-        return 'plz enter the right format'
+        print("Error: [tackle_area] ")
+        return 0
 
-def get_result_urls(keyword, job_year=str(date.today().year), area_code=None):
+def get_result_urls(keyword, job_year, area_code=None):
     '''
     keyword 使用者必填
     job_year 預設現在年分
@@ -59,7 +60,7 @@ def get_result_urls(keyword, job_year=str(date.today().year), area_code=None):
         payload["job_year"] = job_year
 
         
-        if payload["area"]:
+        if payload["area_code"]:
             url = "https://www.104.com.tw/jobs/search/?ro=0&keyword={}&area={}&order=15&asc=0&page={}&mode=s&jobsource={}indexpoc"\
                 .format(payload["keyword"], payload["area_code"], payload["page"], payload["job_year"])
         else:
@@ -191,18 +192,25 @@ def crawl_detail(keyword, job_code):
             df.to_csv(r"{}/{}{}.csv".format(data_path,keyword, str_date),mode='a', header=False, index=None,encoding="utf-8-sig")
             save_csv_times+=1    
 
-def work_crawler(keyword, area="All", country="Taiwan"):    
-    
+def work_crawler(keyword, area="All", country="Taiwan", job_year=str(date.today().year)):    
+    start_time = datetime.now()
     if area=="All" and country=="Taiwan":
-        get_result_urls(keyword)
+        get_result_urls(keyword,job_year=job_year)
     
     else:
         area_code = tackle_area(area=area, country=country)
-        get_result_urls( keyword= keyword,area_code=area_code)
+        if area_code != 0:
+            get_result_urls(keyword= keyword,area_code=area_code, job_year=job_year)
     for i in result_code:
         crawl_detail(keyword, i)
-  
     
+    end_time = datetime.now()
+    used_time = (end_time - start_time).seconds
+    if used_time == 0:
+        return 'Please check the country or area'
+    else:
+        return used_time
 if __name__ == "__main__":
-    pass
+    a = work_crawler("data", area="Taoyuan",country="Taiwan",job_year=2019)
+    print(a)
 
