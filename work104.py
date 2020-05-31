@@ -43,7 +43,7 @@ def tackle_area(area="All", country="Taiwan"):
     except:
         return 'plz enter the right format'
 
-def get_result_urls(keyword, job_year=str(date.today().year), area=None):
+def get_result_urls(keyword, job_year=str(date.today().year), area_code=None):
     '''
     keyword 使用者必填
     job_year 預設現在年分
@@ -54,14 +54,14 @@ def get_result_urls(keyword, job_year=str(date.today().year), area=None):
     while True:
         payload = {}
         payload["keyword"] = keyword
-        payload["area"] = area
+        payload["area_code"] = area_code
         payload["page"] = str(now_page)
         payload["job_year"] = job_year
 
         
         if payload["area"]:
             url = "https://www.104.com.tw/jobs/search/?ro=0&keyword={}&area={}&order=15&asc=0&page={}&mode=s&jobsource={}indexpoc"\
-                .format(payload["keyword"], payload["area"], payload["page"], payload["job_year"])
+                .format(payload["keyword"], payload["area_code"], payload["page"], payload["job_year"])
         else:
             url = "https://www.104.com.tw/jobs/search/?ro=0&keyword={}&order=15&asc=0&page={}&mode=s&jobsource={}indexpoc"\
                 .format(payload["keyword"], payload["page"], payload["job_year"])
@@ -173,30 +173,36 @@ def crawl_detail(keyword, job_code):
             job_requirements_counter = len_job_requirements
     except:
         pass
+    if len(job_requirements) > 1:
+        tmp_list = job_name + job_company + job_company_url + job_requirement_Exp + job_requirements
+        final_list.append(tmp_list)
+        df = pd.DataFrame(final_list) # ,columns=["職缺", "公司名稱", "公司簡介url", "工作經歷", "所需技能"]
+        str_date = datetime.now().strftime("%Y%m%d")
+        
+        global save_csv_times
+        
+        data_path = r'./data/{}'.format(keyword)
+        if not os.path.isdir(data_path):
+            os.mkdir(data_path)
+        if save_csv_times ==0:
+            df.to_csv(r"{}/{}{}.csv".format(data_path,keyword, str_date),mode='a', index=None,encoding="utf-8-sig")
+            save_csv_times+=1
+        else:
+            df.to_csv(r"{}/{}{}.csv".format(data_path,keyword, str_date),mode='a', header=False, index=None,encoding="utf-8-sig")
+            save_csv_times+=1    
 
-    tmp_list = job_name + job_company + job_company_url + job_requirement_Exp + job_requirements
-    final_list.append(tmp_list)
-    df = pd.DataFrame(final_list) # ,columns=["職缺", "公司名稱", "公司簡介url", "工作經歷", "所需技能"]
-    str_date = datetime.now().strftime("%Y%m%d")
+def work_crawler(keyword, area="All", country="Taiwan"):    
     
-    global save_csv_times
+    if area=="All" and country=="Taiwan":
+        get_result_urls(keyword)
     
-    data_path = r'./data/{}'.format(keyword)
-    if not os.path.isdir(data_path):
-        os.mkdir(data_path)
-    if save_csv_times ==0:
-        df.to_csv(r"{}/{}{}.csv".format(data_path,keyword, str_date),mode='a', index=None,encoding="utf-8-sig")
-        save_csv_times+=1
     else:
-        df.to_csv(r"{}/{}{}.csv".format(data_path,keyword, str_date),mode='a', header=False, index=None,encoding="utf-8-sig")
-        save_csv_times+=1    
-    
-
+        area_code = tackle_area(area=area, country=country)
+        get_result_urls( keyword= keyword,area_code=area_code)
+    for i in result_code:
+        crawl_detail(keyword, i)
   
     
 if __name__ == "__main__":
-    
-    keyword = "數據分析"
-    a = get_result_urls(keyword)        
-    for i in result_code:
-        crawl_detail(keyword, i)
+    pass
+
